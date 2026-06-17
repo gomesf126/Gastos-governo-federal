@@ -2,8 +2,6 @@ import pandas as pd
 import unicodedata
 import numpy as np
 
-
-from src.extract.extrair import extrair
 def padronizar_colunas(df):
     df.columns = (
         df.columns
@@ -115,7 +113,7 @@ def resumo_nulos(df):
     return pd.DataFrame(dados)
 
 def tratar_datas(df):
-    df = df.assign(mes_ano = lambda x: pd.to_datetime(df['mes_ano'] ,format='%m/%Y', errors='coerce') )
+    df = df.assign(mes_ano = lambda x: pd.to_datetime(x['mes_ano'] ,format='%m/%Y', errors='coerce') )
     return df
 
 def resumo_duplicados(df):
@@ -125,37 +123,7 @@ def resumo_duplicados(df):
     }
 
 def remover_duplicatas(df):
-    return df.drop_duplicates()
+    return df.drop_duplicates()#.reset_index(drop=True)
 
 def remover_colunas_invalidas(df):
     return df.iloc[:,~df.columns.str.contains('^unnamed', case=False)]
-
-
-
-
-import pandas as pd
-
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', None)
-pd.set_option('display.max_colwidth', None)
-
-df = extrair()
-df = padronizar_colunas(df)
-df = tratar_texto(df)
-df = tratar_numeros(df)
-df = tratar_negativos(df)
-df = tratar_nulos_numeros(df)
-df =tratar_nulos(df)
-df = tratar_datas(df)
-df= remover_colunas_invalidas(df)
-
-df = flags_nulos(df)
-resumo = resumo_nulos(df)
-
-print(df.columns)
-print(df.head(5))
-print(resumo)
-print(df.info())
-
-print(resumo_duplicados(df))
