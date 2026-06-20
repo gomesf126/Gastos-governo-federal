@@ -16,6 +16,11 @@ def main():
 
     metrica = criar_metricas(df)
     print(resumos)
+    print(df.columns)
+    #print(df.head(5))
+    print(metrica['taxa_pagamento'])
+    print(metrica['taxa_liquidacao'])
+    print(metrica['eficiencia_orcamentaria'])
 
     return df
 if __name__ == '__main__':
