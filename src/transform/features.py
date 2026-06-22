@@ -20,6 +20,7 @@ from src.transform.feature_eficiencia_orcamentaria import feature_eficiencia_orc
 from src.transform.feature_classe_abc_valor_liquidado import feature_classe_abc_valor_liquidado
 from src.transform.feature_alertas_empenhos_altos import feature_alertas_empenhos_altos
 from src.transform.churn_inatividade_orgao import churn_inatividade_orgao
+from src.transform.feature_financeira_base import feature_financeira_base
 
 CLEANING = [
     padronizar_colunas,
@@ -35,6 +36,7 @@ CLEANING = [
 ]
 
 ENGINEERING = [
+    feature_financeira_base,
     feature_tempo,
     churn_inatividade_orgao,
     feature_classe_abc_valor_liquidado,

@@ -6,14 +6,15 @@ import numpy as np
 # Classe B: de 80% até 95%.
 # Classe C: acima de 95%.
 def feature_classe_abc_valor_liquidado(df):
-    abc = (df.groupby('orgao_superior', as_index=False)
-           .agg(
-                total_valor_liquidado = ('valor_liquidado','sum')
-            )
-            .sort_values('total_valor_liquidado', ascending=False)
+    abc = ( df
+            [['orgao_superior','valor_liquidado_total']]
+            .drop_duplicates('orgao_superior')
+            .sort_values('valor_liquidado_total', ascending=False)
             .reset_index(drop=True)
             .assign(
-                percentual_orgao = lambda x: x['total_valor_liquidado'] / x['total_valor_liquidado'].sum(),
+                percentual_orgao = lambda x:
+                x['valor_liquidado_total'] /
+                x['valor_liquidado_total'].sum(),
                 percentual_acumulado = lambda x: x['percentual_orgao'].cumsum()
             )
     )
@@ -27,7 +28,7 @@ def feature_classe_abc_valor_liquidado(df):
         default='C'
     )
     return df.merge(
-        abc,
+        abc[['orgao_superior','classe_abc','percentual_orgao','percentual_acumulado']],
         on='orgao_superior',
         how='left'
     )

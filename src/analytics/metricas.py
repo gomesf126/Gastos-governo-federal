@@ -25,15 +25,12 @@ def taxa_liquidacao(df, mes_num=None, ano_num=None, quantidade=None):
     qtd = quantidade_num(quantidade)
     base = filtro_base(df, mes_num, ano_num)
     return ( base
-            .groupby('orgao_superior', as_index=False)
-            .agg(
-                 valor_empenhado_total = ('valor_empenhado','sum'),
-                 valor_liquidado_total = ('valor_liquidado','sum'))
-            .assign(taxa_liquidacao = lambda x: np.where(
-                x['valor_empenhado_total'] > 0, ((x['valor_liquidado_total'] / x['valor_empenhado_total'])*100).round(2),
-                np.nan
-            ))
-            .sort_values('taxa_liquidacao', ascending=False)
+            [['orgao_superior',
+              'valor_empenhado_total',
+              'valor_liquidado_total',
+              'taxa_liquidacao']]
+            .drop_duplicates('orgao_superior')
+            .sort_values('taxa_liquidacao')
             .head(qtd)
             .reset_index(drop=True)
             )
@@ -42,16 +39,11 @@ def taxa_pagamento(df, mes_num=None, ano_num=None,quantidade=None):
     qtd = quantidade_num(quantidade)
     base = filtro_base(df,mes_num, ano_num, quantidade)
     return (base
-            .groupby('orgao_superior', as_index=False)
-            .agg(
-                 valor_liquidado_total=('valor_liquidado','sum'),
-                 valor_pago_total=('valor_pago', 'sum')
-            )
-            .assign(taxa_pagamento = lambda x:(
-                    np.where(
-                    x['valor_liquidado_total'] > 0, ( (x['valor_pago_total'] / x['valor_liquidado_total']) *100 ).round(2),
-                     np.nan) )
-            )
+            [['orgao_superior',
+              'valor_liquidado_total',
+              'valor_pago_total',
+              'taxa_pagamento']]
+            .drop_duplicates('orgao_superior')
             .sort_values('taxa_pagamento', ascending=False)
             .head(qtd)
             .reset_index(drop=True)
@@ -63,19 +55,14 @@ def eficiencia_orcamentaria(df, mes_num=None, ano=None, quantidade=None):
 
     return (
         base
-        .groupby('orgao_superior', as_index=False)
-        .agg(
-            valor_empenhado_total=('valor_empenhado','sum'),
-            valor_pago_total = ('valor_pago','sum')
-        )
-        .assign(
-            eficiencia_pagamento = lambda x:(
-                np.where(
-                x['valor_empenhado_total']>0,
-                ( (x['valor_pago_total']/x['valor_empenhado_total']) *100 ).round(2), np.nan )
-            )
-        )
-        .sort_values('eficiencia_pagamento', ascending=False)
+        [['orgao_superior',
+          'valor_empenhado_total',
+          'valor_pago_total',
+          'eficiencia_orcamentaria',
+          'excesso_pagamento',
+          'flag_excesso_pagamento']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('eficiencia_orcamentaria', ascending=False)
         .head(qtd)
         .reset_index(drop=True)
     )
@@ -85,15 +72,18 @@ def feature_saldo_liquidar(df, mes_num=None, ano=None, quantidade= None):
     base = filtro_base(df, mes_num, ano)
     return(
         base
-        .groupby('orgao_superior', as_index=False)
-        .agg(saldo_liquidar_total = ('saldo_liquidar','sum'))
-        .sort_values('saldo_liquidar_total', ascending=False)
+        [['orgao_superior',
+          'valor_empenhado_total',
+          'valor_liquidado_total',
+          'saldo_liquidar']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('saldo_liquidar', ascending=False)
         .head(quantidade)
         .reset_index(drop=True)
     )
 
-def evolucao_pagamentos(df, ano=None, quantidade=None):
-    quantidade = quantidade_num(quantidade)
+def evolucao_pagamentos(df, mes_num=None, ano=None, quantidade=None):
+    qtd = quantidade_num(quantidade)
     base = filtro_base(df,  ano)
     return (
         base
@@ -105,26 +95,81 @@ def evolucao_pagamentos(df, ano=None, quantidade=None):
         )
         .reset_index()
         .sort_values(['orgao_superior'])
-        .head(quantidade)
+        .head(qtd)
     )
 
-def concentracao_pagamento(df, mes_num=None):
-    return df
 
-def alerta_restos_altos(df, mes_num=None):
-    return df
 
-def chur_pagamento():
-    return
+def concentracao_pagamento(df, mes_num=None, ano=None, quantidade=None):
+    qtd= quantidade_num(quantidade)
+    base = filtro_base(df,mes_num,ano)
+    return (
+        base
+        [['orgao_superior',
+          'valor_empenhado_total',
+          'valor_pago_total',
+          'valor_atrasados_pagos_total']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('valor_pago_total', ascending=False)
+        .head(qtd)
+        .reset_index(drop=True)
+    )
+
+def alertas_empenhos_altos(df, mes_num=None, ano=None, quantidade=None):
+    qtd= quantidade_num(quantidade)
+    base = filtro_base(df,mes_num,ano)
+    return(
+        base
+        [['orgao_superior',
+          'valor_empenhado_total',
+          'valor_liquidado_total',
+          'alerta_empenho_alto',
+          'flag_alerta_empenho_alto']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('alerta_empenho_alto', ascending=False)
+        .head(qtd)
+        .reset_index(drop=True)
+    )
+
+def chur_pagamento(df, mes_num=None, ano=None, quantidade=None):
+    qtd= quantidade_num(quantidade)
+    base = filtro_base(df,mes_num,ano)
+    return (
+        base
+        [['orgao_superior',
+          'ultimo_pagamento_orgao',
+          'dias_sem_pagamento',
+          'status_pagamento']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('dias_sem_pagamento')
+        .head(qtd)
+        .reset_index(drop=True)
+    )
+
+def classe_abc_valor_liquidado(df, mes_num=None, ano=None, quantidade=None):
+    qtd= quantidade_num(quantidade)
+    base = filtro_base(df,mes_num,ano)
+    return(
+        base
+        [['orgao_superior',
+          'percentual_orgao',
+          'percentual_acumulado',
+          'classe_abc']]
+        .drop_duplicates('orgao_superior')
+        .sort_values('classe_abc')
+        .head(qtd)
+        .reset_index(drop=True)
+    )
 
 def criar_metricas(df, mes_num=None, ano=None, quantidade=None) -> dict:
     return {
-       'taxa_liquidacao': taxa_liquidacao(df, mes_num),
-        'taxa_pagamento': taxa_pagamento(df, mes_num),
-        'eficiencia_orcamentaria': eficiencia_orcamentaria(df, mes_num),
-       # 'top_entidades_empenho': top_entidades_empenho(df, mes_num),
-        'evolucao_pagamentos': evolucao_pagamentos(df, ano, quantidade),
-        'concentracao_pagamento': concentracao_pagamento(df, mes_num),
-        'alerta_restos_altos': alerta_restos_altos(df, mes_num),
-        'chur_pagamento':chur_pagamento()
+       'taxa_liquidacao': taxa_liquidacao(df,mes_num,ano,quantidade),
+        'taxa_pagamento': taxa_pagamento(df,mes_num,ano,quantidade),
+        'eficiencia_orcamentaria': eficiencia_orcamentaria(df,mes_num,ano,quantidade),
+        'feature_saldo_liquidar':feature_saldo_liquidar(df,mes_num,ano,quantidade),
+        'evolucao_pagamentos': evolucao_pagamentos(df,mes_num,ano,quantidade),
+        'concentracao_pagamento': concentracao_pagamento(df,mes_num,ano,quantidade),
+        'alertas_empenhos_altos': alertas_empenhos_altos(df,mes_num,ano,quantidade),
+        'chur_pagamento':chur_pagamento(df,mes_num,ano,quantidade),
+        'classe_abc_valor_liquidado':classe_abc_valor_liquidado(df,mes_num,ano,quantidade)
     }

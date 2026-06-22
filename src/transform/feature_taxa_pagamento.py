@@ -5,8 +5,8 @@ import numpy as np
 def feature_taxa_pagamento(df):
     df = df.assign(
         taxa_pagamento = lambda x: np.where(
-            x['valor_liquidado'] > 0,
-            x['valor_pago'] / x['valor_liquidado'],
+            x['valor_liquidado_total'] > 0,
+            x['valor_pago_total'] / x['valor_liquidado_total'],
             np.nan)
     )
     return df
