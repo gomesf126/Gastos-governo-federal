@@ -117,10 +117,21 @@ def tratar_datas(df):
     return df
 
 def resumo_duplicados(df):
-    return {
-        'quantidade_duplicados': df.duplicated().sum(),
+    dados = {
+        'total_linhas': len(df),
+        'linhas_duplicadas': df.duplicated().sum(),
         'percentual_duplicados': round(df.duplicated().mean() * 100, 2)
     }
+    return pd.DataFrame([dados])
+
+def tipos_dados(df):
+    return pd.DataFrame(
+        {
+            'coluna':df.dtypes.index,
+            'tipo':df.dtypes.astype(str).values
+        }
+    )
+
 
 def remover_duplicatas(df):
     return df.drop_duplicates()#.reset_index(drop=True)
